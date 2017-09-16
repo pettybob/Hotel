@@ -1,0 +1,155 @@
+#override("title")
+SpringWind - 客房经营管理
+#end
+#override("css")
+<link href="#springUrl('/static/css/plugins/bootstrap-table/bootstrap-table.min.css')" rel="stylesheet">
+#end
+#override("breadcrumb")
+<li><a>客房管理</a></li><li class="active"><strong>客房经营管理</strong></li>
+#end
+#override("content")
+<div class="row">
+	<div class="ibox-content text-right form-inline" style="background: #F3F3F4;">
+		<div class="input-group">
+			<input type="text" class="form-control">
+			<span class="input-group-btn">
+				<button type="button" class="btn btn-info">搜索</button>
+			</span>
+		</div>
+		<!-- <button class="btn btn-primary" onclick="editRole(null)" type="button">
+		<i class="fa fa-pencil"></i>&nbsp;添加角色</button> -->
+	</div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <table id="dataTable"></table>
+    </div>
+</div>
+#end
+#override("js")
+<script src="#springUrl('/static/js/plugins/bootstrap-table/bootstrap-table.min.js')"></script>
+<script src="#springUrl('/static/js/plugins/bootstrap-table/bootstrap-table-mobile.min.js')"></script>
+<script src="#springUrl('/static/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js')"></script>
+<script src="#springUrl('/static/plugins/layer-v2.2/layer/layer.js')"></script>
+<script src="#springUrl('/static/js/base_list.js')"></script>
+<script src="#springUrl('/static/js/common.js')"></script>
+<script type="text/javascript">
+var dataUrl="#springUrl('/perm1/manager/getRoomList.html')";
+var dataColumns = [{
+	width: 30,//宽度
+    title: '操作',
+    formatter: function (value, row, index) {
+        var id = row.id;
+        var recordId = row.recordId;
+        var sts = row.sts;
+        if(sts == "空闲"){
+        	return '<a class="btn btn-xs btn-warning" onclick="editRoom(' + "'" + id + "'," +"'1'" + ')"><i class="fa fa-pencil"></i>入住</a> ';
+        } else if(sts == "入住"){
+        	return '<a class="btn btn-xs btn-success" onclick="checkout (' + "'" + id + "','" + recordId +"'"+ ')"><i class="fa fa-edit"></i>退房</a>';
+        } 
+    }
+    
+ 
+}, {
+    field: 'roomNo',
+    width: 60,//宽度
+    sortable: true,
+    title: '房间号'
+}, {
+    field: 'sts',
+    width: 100,//宽度
+    title: '状态',
+   	sortable: true
+},  {
+    field: 'roomType',
+    width: 100,//宽度
+    sortable: true,
+    title: '房型'
+}, {
+    field: 'bedNum',
+    width: 100,//宽度
+    title: '床位'
+}, {
+    field: 'price',
+    width: 100,//宽度
+    sortable: true,
+    title: '价格(元)'
+},  {
+    field: 'customer',
+    width: 100,//宽度
+    title: '顾客名'
+},  {
+    field: 'inDate',
+    width: 100,//宽度
+    title: '入住时间',
+   	formatter: function (value, row, index) {
+	    return formatDateFor17(row.inDate);
+	}
+},  {
+    field: 'userCard',
+    width: 100,//宽度
+    title: '身份证号码'
+},  {
+    field: 'userPhone',
+    width: 100,//宽度
+    title: '电话号码'
+},  {
+    field: 'outDate',
+    width: 100,//宽度
+    title: '退房时间'
+}];
+function dataQueryParams(params) {
+	if(params.sortName==undefined){
+		params.sortName = "sts";
+	}
+    return {
+       	_sortName:params.sortName,
+        _sortOrder:params.sortOrder,
+        _size: params.limit,  //页面大小
+        _index: params.offset
+    };
+}
+function editRoom(id,type) {
+   	var title = "入住手续";
+   	var url = "#springUrl('/perm1/manager/edit.html')";
+	url = url + "?id=" + id;
+    layer.open({
+        type: 2,
+        title: title,
+        shadeClose: true,
+        shade: 0.8,
+        area: ['550px', '550px'],
+        fix: false,
+        maxmin: true,
+        content: url
+    });
+}
+function checkout(id,recordId) {
+    //询问框
+    layer.confirm('确定退房吗？', {
+        btn: ['确定', '取消'] //按钮
+    }, function () {
+    	$.ajax({
+        	url: "#springUrl('/perm1/manager/editRoom')",
+            data: "id="+id+"&recordId="+recordId,
+            type: "POST",
+            success: function(data){
+            	var d = JSON.parse(data);
+                if(d.success && d.data){
+                	window.parent.location.reload();
+                	//当你在iframe页面关闭自身时
+                	//var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                	//parent.layer.close(index); //再执行关闭   
+                } else {
+                	//失败，提交表单成功后，释放hold，如果不释放hold，就变成了只能提交一次的表单
+                    me.holdSubmit(false);
+                }
+            }
+        });
+    }, function () {
+        return;
+    });
+}
+</script>
+#end
+#extends("/common/framework.html")
